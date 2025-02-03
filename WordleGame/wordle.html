@@ -1,0 +1,118 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+
+public class WordleGUI extends JFrame {
+    // Define the word list and select a secret word randomly.
+    private static final String[] WORD_LIST = {"apple", "brave", "charm", "daisy", "eagle"};
+    private final String SECRET_WORD = WORD_LIST[new Random().nextInt(WORD_LIST.length)];
+    private static final int MAX_ATTEMPTS = 6;
+
+    private int currentAttempt = 0;
+    
+    // Swing components for the grid and input panel.
+    private JPanel gridPanel;
+    private JTextField inputField;
+    private JButton submitButton;
+    
+    // A 2D array to hold the grid cells (JLabels).
+    private JLabel[][] gridCells = new JLabel[MAX_ATTEMPTS][5];
+    
+    public WordleGUI() {
+        setTitle("Wordle Game");
+        setSize(400, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        
+        // Create the grid panel.
+        gridPanel = new JPanel();
+        gridPanel.setLayout(new GridLayout(MAX_ATTEMPTS, 5, 5, 5));
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+            for (int j = 0; j < 5; j++) {
+                JLabel cell = new JLabel("", SwingConstants.CENTER);
+                cell.setOpaque(true);
+                cell.setBackground(Color.WHITE);
+                cell.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                cell.setFont(new Font("SansSerif", Font.BOLD, 24));
+                gridCells[i][j] = cell;
+                gridPanel.add(cell);
+            }
+        }
+        add(gridPanel, BorderLayout.CENTER);
+        
+        // Create the input panel.
+        JPanel inputPanel = new JPanel();
+        inputField = new JTextField(10);
+        submitButton = new JButton("Submit Guess");
+        inputPanel.add(inputField);
+        inputPanel.add(submitButton);
+        add(inputPanel, BorderLayout.SOUTH);
+        
+        // Action listeners for the button and input field.
+        submitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                submitGuess();
+            }
+        });
+        
+        inputField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                submitGuess();
+            }
+        });
+    }
+    
+    // Evaluate the guess and update the grid.
+    private void submitGuess() {
+        String guess = inputField.getText().toLowerCase();
+        if (guess.length() != 5) {
+            JOptionPane.showMessageDialog(this, "Please enter a 5-letter word.");
+            return;
+        }
+        
+        // Process each letter of the guess.
+        for (int i = 0; i < 5; i++) {
+            char letter = guess.charAt(i);
+            JLabel cell = gridCells[currentAttempt][i];
+            cell.setText(String.valueOf(letter).toUpperCase());
+            
+            if (letter == SECRET_WORD.charAt(i)) {
+                cell.setBackground(new Color(106, 170, 100)); // Green
+            } else if (SECRET_WORD.indexOf(letter) != -1) {
+                cell.setBackground(new Color(201, 180, 88)); // Yellow
+            } else {
+                cell.setBackground(new Color(120, 124, 126)); // Gray
+            }
+        }
+        
+        // Check for win condition.
+        if (guess.equals(SECRET_WORD)) {
+            JOptionPane.showMessageDialog(this, "🎉 Congratulations! You guessed the word!");
+            endGame();
+            return;
+        }
+        
+        currentAttempt++;
+        if (currentAttempt >= MAX_ATTEMPTS) {
+            JOptionPane.showMessageDialog(this, "😢 Game Over! The correct word was: " + SECRET_WORD);
+            endGame();
+        }
+        
+        inputField.setText("");
+    }
+    
+    // Disable input after the game ends.
+    private void endGame() {
+        inputField.setEditable(false);
+        submitButton.setEnabled(false);
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new WordleGUI().setVisible(true);
+            }
+        });
+    }
+}
